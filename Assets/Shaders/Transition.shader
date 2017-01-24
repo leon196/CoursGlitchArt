@@ -22,6 +22,15 @@
 			sampler2D _TransitionTexture;
 			float _TransitionRatio;
 
+			// http://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner
+			float rand(float2 co) {
+				return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
+			}
+
+			float2 pixelize (float2 value, float segments) {
+				return ceil(value * segments) / segments;
+			}
+
 			fixed4 frag (v2f_img i) : SV_Target
 			{
 				fixed4 currentRender = tex2D(_MainTex, i.uv);
