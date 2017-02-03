@@ -50,6 +50,13 @@ float2 kaleidoGrid(float2 p)
 	return fmod(lerp(p, 1.0 - p, float2(step(fmod(p, 2.0), float2(1.0, 1.0)))), 1.0);
 }
 
+float kaleido (float d)
+{
+  float dMod = fmod(abs(d), 1.0);
+  return lerp(1.0 - dMod, dMod, fmod(floor(abs(d)), 2.0));
+}
+
+
 float kaleido (float d, float t)
 {
   d += t * lerp(-1.0, 1.0, fmod(floor(abs(d)), 2.0));
