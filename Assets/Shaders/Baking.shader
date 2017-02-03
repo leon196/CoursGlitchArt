@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Baking"
+﻿Shader "Hidden/Baking"
 {
 	Properties
 	{
@@ -6,43 +6,40 @@
 	}
 	SubShader
 	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+		Cull Off ZWrite Off ZTest Always
 
 		Pass
 		{
 			CGPROGRAM
-			#pragma vertex vert
+			#pragma vertex vert_img
 			#pragma fragment frag
 			
 			#include "UnityCG.cginc"
-
+			
 			sampler2D _MainTex;
-			float4 _MainTex_ST;
+			sampler2D _PositionTexture;
+			sampler2D _ColorTexture;
+			sampler2D _NormalTexture;
+			float4x4 _MatrixWorldToLocal;
+			float3 _SpherePosition;
+			float3 _TransformPosition;
+			float _SphereRadius;
 
-			struct v2f
+			fixed4 frag (v2f_img i) : SV_Target
 			{
-				float4 vertex : SV_POSITION;
-				float4 color : COLOR;
-				float3 normal : NORMAL;
-				float2 texcoord : TEXCOORD0;
-			};
-			
-			v2f vert (appdata_full v)
-			{
-				v2f o;
-				float4 vertex = mul(unity_ObjectToWorld, v.vertex);
-				o.vertex = mul(UNITY_MATRIX_VP, vertex);
-				o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
-				o.color = v.color;
-				o.normal = v.normal;
-				return o;
-			}
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
-				fixed4 color = tex2D(_MainTex, i.texcoord);
-				return color;
+				fixed4 buffer = tex2D(_MainTex, i.uv);
+				fixed4 pos = tex2D(_PositionTexture, i.uv);
+				fixed4 normal = tex2D(_NormalTexture, i.uv);
+				fixed4 color = tex2D(_ColorTexture, i.uv);
+
+				float3 spherePosition = mul(_MatrixWorldToLocal, _SpherePosition - _TransformPosition);
+
+				float ratio = 1.0 - smoothstep(0.0, _SphereRadius, length(spherePosition - pos));
+
+				buffer = lerp(buffer, normal, ratio);
+				buffer = lerp(buffer, color, 0.05);
+
+				return buffer;
 			}
 			ENDCG
 		}

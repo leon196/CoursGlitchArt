@@ -5,16 +5,29 @@ using UnityEngine;
 public class Baking : MonoBehaviour
 {
 	private MeshFilter meshFilter;
-	public Texture2D baked;
+	private Renderer renderer;
+	private Texture2D positionTexture;
+	private int width = 512;
+	private int height = 512;
+
+	public float length = 8f;
+	public float radius = 2f;
+	public Texture colorTexture;
+	public Texture normalTexture;
+	private Vector3 position;
+	private ShaderPass shaderPass;
+	private RaycastHit hit;
 
 	void Start ()
 	{
 		meshFilter = GetComponentInChildren<MeshFilter>();
-		baked = new Texture2D(512, 512);
-		Color[] colors = new Color[baked.width*baked.height];
-		for (int x = 0; x < baked.width; ++x) {
-			for (int y = 0; y < baked.height; ++y) {
-				int index = x + y * baked.width;
+		renderer = GetComponentInChildren<Renderer>();
+		shaderPass = GetComponentInChildren<ShaderPass>();
+		positionTexture = new Texture2D(width, height, TextureFormat.RGBAFloat, false);
+		Color[] colors = new Color[width*height];
+		for (int x = 0; x < width; ++x) {
+			for (int y = 0; y < height; ++y) {
+				int index = x + y * width;
 				float c = index/(float)colors.Length;
 				colors[index] = new Color(c,c,c,1f);
 			}
@@ -32,43 +45,51 @@ public class Baking : MonoBehaviour
 			Vector2 uvA = uvs[triangles[tri]];
 			Vector2 uvB = uvs[triangles[tri+1]];
 			Vector2 uvC = uvs[triangles[tri+2]];
-			int minX = (int)(Mathf.Min(uvA.x, Mathf.Min(uvB.x, uvC.x)) * baked.width);
-			int maxX = (int)(Mathf.Max(uvA.x, Mathf.Max(uvB.x, uvC.x)) * baked.width);
-			int minY = (int)(Mathf.Min(uvA.y, Mathf.Min(uvB.y, uvC.y)) * baked.height);
-			int maxY = (int)(Mathf.Max(uvA.y, Mathf.Max(uvB.y, uvC.y)) * baked.height);
+			int minX = (int)(Mathf.Min(uvA.x, Mathf.Min(uvB.x, uvC.x)) * width);
+			int maxX = (int)(Mathf.Max(uvA.x, Mathf.Max(uvB.x, uvC.x)) * width);
+			int minY = (int)(Mathf.Min(uvA.y, Mathf.Min(uvB.y, uvC.y)) * height);
+			int maxY = (int)(Mathf.Max(uvA.y, Mathf.Max(uvB.y, uvC.y)) * height);
 			float areaTotal = TriangleArea(uvA, uvB, uvC);
 			for (int pixelX = minX; pixelX <= maxX; ++pixelX) {
 				for (int pixelY = minY; pixelY <= maxY; ++pixelY) {
-					Vector2 uv = new Vector2(pixelX/(float)baked.width, pixelY/(float)baked.height); 
+					Vector2 uv = new Vector2(pixelX/(float)width, pixelY/(float)height); 
 					float areaA = TriangleArea(uv, uvB, uvC) / areaTotal;
 					float areaB = TriangleArea(uv, uvA, uvC) / areaTotal;
 					float areaC = TriangleArea(uv, uvA, uvB) / areaTotal;
 					Vector3 vertex = Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(vertexA, vertexC, areaC), vertexB, areaB), vertexA, areaA);
-					int index = pixelX + pixelY * baked.width;
+					int index = pixelX + pixelY * width;
 					colors[index] = new Color(vertex.x, vertex.y, vertex.z);
 				}
 			}
-			// for (int vIndex = 0; vIndex < 3; ++vIndex) {
-			// 	int vertexIndex = triangles[tri+vIndex];
-			// 	Vector3 vertex = vertices[vertexIndex];
-			// 	Vector2 uv = uvs[vertexIndex];
-
-			// 	int index = (int)(uv.x * baked.width) + (int)(uv.y * baked.height) * baked.width;
-			// 	colors[index] = new Color(vertex.x, vertex.y, vertex.z);
-			// }
 		}
-		baked.SetPixels(colors);
-		baked.Apply(false);
+		positionTexture.SetPixels(colors);
+		positionTexture.Apply(false);
+
+		shaderPass.Print(colorTexture as Texture2D);
 	}
 	
 	void Update ()
 	{
+    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+		if (Physics.Raycast(ray.origin, ray.direction, out hit)) {
+			position = hit.point;
+		} else {
+			position = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, length));
+		}
 		
+		Shader.SetGlobalTexture("_ColorTexture", colorTexture);
+		Shader.SetGlobalTexture("_NormalTexture", normalTexture);
+		Shader.SetGlobalTexture("_PositionTexture", positionTexture);
+		Shader.SetGlobalVector("_SpherePosition", position);
+		Shader.SetGlobalFloat("_SphereRadius", radius);
+		Shader.SetGlobalMatrix("_MatrixWorldToLocal", transform.worldToLocalMatrix);
+		Shader.SetGlobalVector("_TransformPosition", transform.position);
 	}
 
-	void BakeNormal ()
+	void OnDrawGizmos ()
 	{
-
+		Gizmos.DrawWireSphere(position, radius);
 	}
 
 	// http://stackoverflow.com/questions/10947885/calculation-the-area-of-a-triangle
