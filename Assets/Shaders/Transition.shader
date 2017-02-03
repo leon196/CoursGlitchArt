@@ -35,23 +35,11 @@
 			fixed4 frag (v2f_img i) : SV_Target
 			{
 				float2 uv = i.uv;
-				uv.x *= 2.;
-				// float offset = rand(i.uv.xx);
-				// float r = _TransitionRatio;
-				// uv.y -= r + lerp(0.,offset, sin(r*3.14159));
+
 				fixed4 currentRender = tex2D(_MainTex, uv);
 				fixed4 previousRender = tex2D(_TransitionTexture, uv);
-				float ratio = step(0., abs(uv.y-0.5)*2.-1.);
 
-				fixed4 color = currentRender;//lerp(previousRender, currentRender, ratio);
-
-				uv = i.uv;
-				uv.y = 1. - uv.y;
-				uv.x -= 0.5;
-				uv.x *= 2.;
-				fixed4 camera = tex2D(_CameraTexture, uv);
-
-				color = lerp(color, camera, step(0.5,i.uv.x));
+				fixed4 color = lerp(previousRender, currentRender, _TransitionRatio);
 
 				return color;
 			}

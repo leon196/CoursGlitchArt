@@ -53,7 +53,7 @@
 				UNITY_TRANSFER_FOG(o,o.vertex);
 
 				float3 viewDir = -normalize(WorldSpaceViewDir(v.vertex));
-				viewDir = normalize(_WorldSpaceLightPos0);
+				// viewDir = normalize(_WorldSpaceLightPos0);
 				o.normal = normalize(v.normal);
 
 				float3 av = mul(UNITY_MATRIX_VP, float4(cross(o.normal, viewDir),0));
