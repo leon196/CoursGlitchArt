@@ -65,21 +65,21 @@
 				// uvWorldYZ.y = kaleido((pos - spherePosition).z * scale);
 				// fixed4 brush = lerp(tex2D(_BrushTexture, uvWorldXY), tex2D(_BrushTexture, uvWorldYZ), 0.5);
 
-				// float tint = fmod(noiseIQ(pos + spherePosition * _SphereRadius +normal*3.) * 0.4 + _Time.y*0.2, 1.0);
+				float tint = fmod(noiseIQ(pos + spherePosition * _SphereRadius +normal*3.) * 0.4 + _Time.y*0.2, 1.0);
 				// float4 noisy = float4(hsv2rgb(float3(tint,0.8,0.8)), 1.0);
-				// float4 noisy = float4(float3(1,1,1) * (sin(ratio*40.)*0.5+0.5), 1.0);
+				float4 noisy = float4(float3(1,1,1) * (sin(ratio*40.)*0.5+0.5), 1.0);
 
-				// float3 light = normalize(mul(_MatrixWorldToLocal, float3(0,-1,0)));
+				float3 light = normalize(mul(_MatrixWorldToLocal, float3(0,-1,0)));
 				// float dotLight = dot(normal, light) * 0.5 + 0.5;
 
-				// float2 dir = normalize(normal.xz);
-				// float angle = atan2(dir.y, dir.x);
-				// float2 offsetBuffer = float2(cos(angle), sin(angle));
-				// float2 uvBuffer = i.uv + offsetBuffer * unit;
+				float3 dir = cross(normal, float3(0,1,0));
+				float angle = atan2(dir.z, dir.x);
+				float2 offsetBuffer = float2(cos(angle), sin(angle));
+				float2 uvBuffer = i.uv + offsetBuffer * unit;
 				
-				fixed4 buffer = tex2D(_MainTex, i.uv);
+				fixed4 buffer = tex2D(_MainTex, uvBuffer);
 
-				buffer = lerp(buffer, normal, ratio * _InputMouseLeft);
+				buffer = lerp(buffer, noisy, ratio * _InputMouseLeft);
 				buffer = lerp(buffer, color, ratio * _InputMouseRight);
 
 				fixed4 debug = pos * 0.5 + 0.5;
