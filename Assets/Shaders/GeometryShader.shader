@@ -4,13 +4,14 @@
 		_Color ("Color", Color) = (1,1,1,1)
 	}
 	SubShader {
-		Tags { "RenderType"="Opaque" }
+		Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
+		Blend SrcAlpha OneMinusSrcAlpha
+		// ZWrite Off
 
 		Cull Off
 		LOD 100
 		Pass {
 			CGPROGRAM
-			#pragma exclude_renderers gles
 			#pragma vertex vert
 			#pragma geometry geom
 			#pragma fragment frag
@@ -55,8 +56,12 @@
 			{
 				FS_INPUT pIn = (FS_INPUT)0;
 
+				// transform
 				float4x4 model = UNITY_MATRIX_M;
+				// camera
 				float4x4 view = UNITY_MATRIX_V;
+				// perspective, near/far clip 
+				// 3d space -> 2d space camera (viewport)
 				float4x4 projection = UNITY_MATRIX_P;
 
 				float4 a = mul(model, tri[0].vertex);
@@ -64,17 +69,36 @@
 				float4 c = mul(model, tri[2].vertex);
 
 				float3 center = (a+b+c)/3.0;
-				float3 seed = (center + float3(_Time.y,_Time.y+48.4,_Time.y-65.0)) / 2.0;
-				float3 offset = float3(noiseIQ(seed), noiseIQ(seed+3.5), noiseIQ(seed+15.8));
+				float seed = center * 10.;
+				float noisy = noiseIQ(seed);
+				// float3 seed = (center + float3(_Time.y,_Time.y+48.4,_Time.y-65.0)) / 2.0;
+				// float3 offset = float3(noiseIQ(seed), noiseIQ(seed+3.5), noiseIQ(seed+15.8));
+				// a.xyz += offset;
+				// b.xyz += offset;
+				// c.xyz += offset;
+
+				float ratio = fmod(_Time.y + noisy, 1.0);
+
+				float3 offset = float3(0,-1,0)*smoothstep(0.3, 1.0, ratio)*10.;
+				a.xyz += (a - center) * (1+ratio);
+				b.xyz += (b - center) * (1+ratio);
+				c.xyz += (c - center) * (1+ratio);
 				a.xyz += offset;
 				b.xyz += offset;
 				c.xyz += offset;
+				float3 centerP = (a+b+c)/3.0;
+				a.xz += normalize(center).xz * step(centerP.y, 0) * ratio * 10.;
+				b.xz += normalize(center).xz * step(centerP.y, 0) * ratio * 10.;
+				c.xz += normalize(center).xz * step(centerP.y, 0) * ratio * 10.;
+				a.y = max(0, a.y);
+				b.y = max(0, b.y);
+				c.y = max(0, c.y);
 
-				float angleX = rand(center) * (sin(_Time.y)*0.5+0.5);
-				float angleY = rand(center) * (sin(_Time.y)*0.5+0.5);
-				a.xyz = rotateY(rotateX(a, angleX), angleY);
-				b.xyz = rotateY(rotateX(b, angleX), angleY);
-				c.xyz = rotateY(rotateX(c, angleX), angleY);
+				// float angleX = rand(center) * (sin(_Time.y)*0.5+0.5);
+				// float angleY = rand(center) * (sin(_Time.y)*0.5+0.5);
+				// a.xyz = rotateY(rotateX(a, angleX), angleY);
+				// b.xyz = rotateY(rotateX(b, angleX), angleY);
+				// c.xyz = rotateY(rotateX(c, angleX), angleY);
 
 				pIn.vertex = mul(projection, mul(view, a));
 				pIn.texcoord = tri[0].texcoord;

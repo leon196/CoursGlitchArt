@@ -19,6 +19,7 @@
 			#include "UnityCG.cginc"
 
 			sampler2D _MainTex;
+			sampler2D _PositionTexture;
 			sampler2D _BakedTexture;
 			float4 _MainTex_ST;
 

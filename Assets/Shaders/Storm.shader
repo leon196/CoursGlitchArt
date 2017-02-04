@@ -3,6 +3,7 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		_Should ("Should", Float) = 1.0
 	}
 	SubShader
 	{
@@ -18,8 +19,9 @@
 			#include "UnityCG.cginc"
 			#include "Utils.cginc"
 
-			sampler2D _MainTex;
-			float4 _MainTex_ST;
+			uniform sampler2D _MainTex;
+			uniform float4 _MainTex_ST;
+			float _Should;
 
 			struct v2f
 			{
@@ -45,7 +47,17 @@
 
 				float angleX = _Time.y*.02 / size;
 				float angleY = _Time.y*.03 / size;
-				vertex.xyz = rotateY(rotateX(vertex - anchor, angleX), angleY) + anchor;
+
+				// vertex.xyz = rotateY(vertex.xyz - anchor, _Time.y) + anchor;
+				
+				// vertex.xyz = vertex - anchor;
+				// float t = sin(_Time.y + noiseIQ(anchor) * 10.) * 0.5 + 0.5;
+				// vertex.y *= t;
+				// vertex.xyz += anchor;
+
+				float3 rot = rotateY(rotateX(vertex - anchor, angleX), angleY) + anchor;
+
+				vertex.xyz = lerp(vertex, rot, _Should);
 
 				o.vertex = mul(UNITY_MATRIX_VP, vertex);
 				o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Storm : MonoBehaviour
 {
+	[Range(0,1)] public float should = 1f; 
 	public Shader shader;
 
 	private Material material;
@@ -21,7 +22,8 @@ public class Storm : MonoBehaviour
 	
 	void Update ()
 	{
-		
+		material.SetFloat("_Should", should);
+		// Shader.SetGlobalFloat("_Should", should);
 	}
 
 	void StoreInformations (MeshFilter filter)

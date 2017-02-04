@@ -77,9 +77,9 @@
 				float2 offsetBuffer = float2(cos(angle), sin(angle));
 				float2 uvBuffer = i.uv + offsetBuffer * unit;
 				
-				fixed4 buffer = tex2D(_MainTex, uvBuffer);
+				fixed4 buffer = tex2D(_MainTex, i.uv);
 
-				buffer = lerp(buffer, noisy, ratio * _InputMouseLeft);
+				buffer = lerp(buffer, normal, ratio * _InputMouseLeft);
 				buffer = lerp(buffer, color, ratio * _InputMouseRight);
 
 				fixed4 debug = pos * 0.5 + 0.5;

@@ -24,7 +24,7 @@ public class Baking : MonoBehaviour
 		radiusDelta = radius;
 		meshFilter = GetComponentInChildren<MeshFilter>();
 		shaderPass = GetComponentInChildren<ShaderPass>();
-		shaderPass.Print(colorTexture as Texture2D);
+		// shaderPass.Print(colorTexture as Texture2D);
 		positionTexture = new Texture2D(width, height, TextureFormat.RGBAFloat, false);
 		BakeBackground();
 		BakePosition();

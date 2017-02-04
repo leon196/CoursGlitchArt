@@ -4,6 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_StencilColor ("Stencil Color", Color) = (1,1,1,1)
+		_EdgeSize ("Edge Size", Float) = 0.02
 	}
 	SubShader
 	{
@@ -23,6 +24,7 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			float4 _StencilColor;
+			float _EdgeSize;
 
 			struct v2f
 			{
@@ -34,7 +36,7 @@
 				v2f o;
 				float4 vertex = mul(unity_ObjectToWorld, v.vertex);
 				float3 normal = normalize(mul(unity_ObjectToWorld, v.normal));
-				vertex.xyz += normal * 0.02;
+				vertex.xyz += normal * _EdgeSize;
 				o.vertex = mul(UNITY_MATRIX_VP, vertex);
 				return o;
 			}
@@ -98,32 +100,31 @@
 				float dotView = dot(i.normal, i.viewDir);
 				float size = (1. - abs(dotView)) * 2.;
 
-				float lineScale = 100;
+				float lineScale = 200;
 				float dotsScale = 60;
 				float brushScale = 20;
 				float brush = noiseIQ(screenUV.xyx*brushScale) * 0.2;
-				float shadowLight = 1. - smoothstep(0.5, 1.0, dotView);
-				float shadowMiddle = (1.-smoothstep(0.6, 0.8	, dotView)) * smoothstep(0.0, 0.5, dotView);
+				float shadowMiddle = (1.-smoothstep(0.6, 0.8	, dotView));
 				float shadowHeavy = 1. - smoothstep(0.3,0.35, dotView);
 
 				// float p = (i.vertexWorld.x+i.vertexWorld.y)*lineScale;
+				float pA = i.vertexWorld.x*lineScale;
+				float pB = i.vertexWorld.y*lineScale;
 				// float p = atan2(i.vertexWorld.x,i.vertexWorld.y)*lineScale;
 				// float p = i.vertexWorld.x*lineScale;
 				float p = i.vertexView.z * lineScale;
 
 				float lines = getLines(p, size);
+				float dots2 = smoothstep(1.0-size, 1.0, sin(pA)*sin(pB));
 				float dots = noiseIQ(i.vertexWorld*dotsScale);
 				float grain = rand(i.vertexWorld) * 0.5 + 0.5;
 
-				shadowLight = shadowMiddle * lines * dots;
-				// lines = getLines(p*2., size*4.);
-				// shadowMiddle = shadowMiddle * lines * dots;
+				shadowMiddle = shadowMiddle * lines * dots;
 
-				shadowLight = clamp(1.-shadowLight,0,1);
 				shadowMiddle = clamp(1.-shadowMiddle,0,1);
 				shadowHeavy = clamp(1.-shadowHeavy,0,1);
 
-				color.rgb *= shadowLight * shadowHeavy;
+				color.rgb *= shadowMiddle * shadowHeavy;
 				return color;
 			}
 			ENDCG
