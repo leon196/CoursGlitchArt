@@ -40,6 +40,7 @@
 				float4 vertex : SV_POSITION;
 				float3 normal : NORMAL;
 				float2 texcoord : TEXCOORD0;
+				float4 color : COLOR;
 			};
 
 			GS_INPUT vert (VS_INPUT v)
@@ -51,7 +52,7 @@
 				return o;
 			}
 
-			[maxvertexcount(3)]
+			[maxvertexcount(4)]
 			void geom (line GS_INPUT lin[2], inout TriangleStream<FS_INPUT> triStream)
 			{
 				FS_INPUT pIn = (FS_INPUT)0;
@@ -66,30 +67,40 @@
 
 				float4 a = mul(model, lin[0].vertex);
 				float4 b = mul(model, lin[1].vertex);
-				float4 c = mul(model, lin[0].vertex) + float4(0,0.1,0,0);
+				float4 c = a;
+				float4 d = b;
 
 				float3 center = (a+b+c)/3.0;
 
 				pIn.vertex = mul(projection, mul(view, a));
 				pIn.texcoord = lin[0].texcoord;
 				pIn.normal = lin[0].normal;
+				pIn.color = float4(0,0,0,1);
 				triStream.Append(pIn);
 
 				pIn.vertex = mul(projection, mul(view, b));
 				pIn.texcoord = lin[1].texcoord;
 				pIn.normal = lin[1].normal;
+				pIn.color = float4(1,1,1,1);
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(projection, mul(view, c));
+				pIn.vertex = mul(projection, mul(view, c)) + float4(0,1.0,0,0);
 				pIn.texcoord = lin[0].texcoord;
 				pIn.normal = lin[0].normal;
+				pIn.color = float4(0,0,0,1);
+				triStream.Append(pIn);
+
+				pIn.vertex = mul(projection, mul(view, d)) + float4(0,1.0,0,0);
+				pIn.texcoord = lin[0].texcoord;
+				pIn.normal = lin[0].normal;
+				pIn.color = float4(1,1,1,1);
 				triStream.Append(pIn);
 			}
 
 			float4 frag (FS_INPUT i) : COLOR
 			{
 				float2 uv = i.texcoord;
-				float4 color = tex2D(_MainTex, uv);
+				float4 color = tex2D(_MainTex, uv) * i.color;
 				return color;
 			}
 			ENDCG
