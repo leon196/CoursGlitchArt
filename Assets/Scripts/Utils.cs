@@ -1,10 +1,90 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEditor;
 
 public static class Utils
 {
+	public static void SetupUV (Mesh[] meshArray)
+	{
+		int vertexIndex = 0;
+		int vertexCount = 0;
+		int meshCount = meshArray.Length;
+		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
+			vertexCount += meshArray[meshIndex].vertices.Length;
+		}
+		int resolution = (int)Utils.GetNearestPowerOfTwo(Mathf.Sqrt(vertexCount));
+		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
+			Mesh mesh = meshArray[meshIndex];
+			Vector2[] uvs2 = new Vector2[mesh.vertices.Length];
+			for (int i = 0; i < uvs2.Length; ++i) {
+				float x = vertexIndex % resolution;
+				float y = Mathf.Floor(vertexIndex / (float)resolution);
+				uvs2[i] = new Vector2(x, y) / (float)resolution;
+				++vertexIndex;
+			}
+			mesh.uv2 = uvs2;
+		}
+	}
+
+	public static List<GameObject> CreateParticles (int count, Transform root)
+	{
+		Vector3[] positions = new Vector3[count];
+		for (int i = 0; i < count; ++i) {
+			positions[i] = RandomVector(-5f, 5f);
+		}
+		return CreateParticles(positions, root);
+	}
+
+	public static List<GameObject> CreateParticles (Vector3[] positions, Transform root)
+	{
+		int verticesMax = 65000;
+		List<GameObject> meshList = new List<GameObject>();
+		int total = positions.Length;
+		int index = 0;
+		while (index < total)
+		{
+			int count = verticesMax;
+			if (total < verticesMax) {
+				count = total;
+			} else if (total > verticesMax && Mathf.Floor(total / verticesMax) == Mathf.Floor(index / verticesMax)) {
+				count = total % verticesMax;
+			}
+
+			Vector3[] vertices = new Vector3[count];
+			Vector3[] normals = new Vector3[count];
+			Color[] colors = new Color[count];
+			int[] indices = new int[count];
+
+			for (int i = 0; i < count && index < total; ++i) {
+				vertices[i] = positions[index];
+				normals[i] = Vector3.up;
+				colors[i] = Color.white;
+				indices[i] = i;
+				++index;
+			}
+
+			Mesh mesh = new Mesh();
+			mesh.vertices = vertices;
+			mesh.normals = normals;
+			mesh.colors = colors;
+			mesh.SetIndices(indices, MeshTopology.Points, 0);
+
+			GameObject meshGameObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject.Destroy(meshGameObject.GetComponent<Collider>());
+			meshGameObject.GetComponent<MeshFilter>().mesh = mesh;
+			meshGameObject.transform.parent = root;
+			meshGameObject.transform.localPosition = Vector3.zero;
+			meshGameObject.transform.localRotation = Quaternion.identity;
+			meshGameObject.transform.localScale = Vector3.one;
+			meshGameObject.name = root.gameObject.name;
+			meshList.Add(meshGameObject);
+		}
+		return meshList;
+}
+
 	public static int[] SuffleArray (int[] array)
 	{
 		for (int i = array.Length - 1; i > 0; i--)
