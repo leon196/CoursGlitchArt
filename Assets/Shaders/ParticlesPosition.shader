@@ -7,6 +7,7 @@
 		_SlowRatio ("Slow Ratio", Range(0,1)) = 0.5
 		_NoiseSpeed ("Noise Speed", Vector) = (1.1, 1.5, 2.0)
 		_NoiseScale ("Noise Scale", Vector) = (1.1, 1.5, 2.0)
+		_Target ("Target", Vector) = (1.1, 1.5, 2.0)
 	}
 	SubShader {
 		Cull Off ZWrite Off ZTest Always
@@ -20,12 +21,14 @@
 			sampler2D _MainTex;
 			sampler2D _SpawnTexture;
 			float _Speed, _SpawnSpeed, _SlowRatio;
-			float3 _NoiseSpeed, _NoiseScale;
+			float3 _NoiseSpeed, _NoiseScale, _Target;
 
 			fixed4 frag (v2f_img i) : SV_Target
 			{
 				fixed4 position = tex2D(_MainTex, i.uv);
 				fixed4 original = tex2D(_SpawnTexture, i.uv);
+
+				original.xyz += _Target;
 
 				float slow = step(_SlowRatio, rand(original.xz));
 
@@ -35,9 +38,18 @@
 				float nx = noiseIQ((position + original) * _NoiseScale.x + tt.x);
 				float ny = noiseIQ((position + original) * _NoiseScale.y + tt.y);
 				float nz = noiseIQ((position + original) * _NoiseScale.z + tt.z);
-				velocity += float3(nx, ny, nz) * 2. - 1.;
+				//velocity += float3(nx, ny, nz) * 2. - 1.;
 
-				velocity += normalize(position);
+				//velocity += normalize(position);
+				float3 direction = 3 * normalize(position - _Target);
+
+				velocity += cross(direction, float3(0,1,0));
+
+				float ww = position.w * position.w;
+
+				velocity += direction * ww;
+
+				velocity.y += (1. - ww) * 0.75;
 
 				position.xyz += velocity * _Speed;
 

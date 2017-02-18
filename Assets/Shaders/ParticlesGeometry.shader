@@ -80,6 +80,7 @@ Shader "Custom/Particles Geometry" {
 
 				float fade = smoothstep(0.0, 0.2, position.w) * (1 - smoothstep(0.8, 1.0, position.w));
 
+				//radius = lerp(radius, 10., position.w);
 				radius *= fade;
 				pIn.color.a *= (rand(pIn.texcoord2.xy) * 0.9 + 0.1) * fade;
 

@@ -13,6 +13,7 @@ public class ParticlesManager : MonoBehaviour
 	public float radius = 0.2f;
 	public Color color = Color.white;
 	public Texture sprite;
+	public Transform target;
 	
 	[Header("Position")]
 	public float spawnSpeed = 0.01f;
@@ -70,6 +71,7 @@ public class ParticlesManager : MonoBehaviour
 		positionMaterial.SetVector("_NoiseSpeed", noiseSpeed);
 		positionMaterial.SetFloat("_SpawnSpeed", spawnSpeed);
 		positionMaterial.SetTexture("_SpawnTexture", positionPass.texture);
+		positionMaterial.SetVector("_Target", target.position);
 
 		positionPass.Update();
 
