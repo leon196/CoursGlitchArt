@@ -86,11 +86,11 @@ Shader "Custom/Particles Geometry" {
 
 				float fade = smoothstep(0.0, 0.2, position.w) * (1 - smoothstep(0.8, 1.0, position.w));
 
-				//radius = lerp(radius, 10., position.w);
+				// radius = lerp(radius, 10., position.w);
 				// radius *= fade;
-				//pIn.color.a *= (rand(pIn.texcoord2.xy) * 0.9 + 0.1) * fade;
+				// pIn.color.a *= (rand(pIn.texcoord2.xy) * 0.9 + 0.1) * fade;
 
-				float shade = smoothstep(0., 200.5, position.y);
+				// float shade = smoothstep(0., 200.5, position.y);
 				// float shade = position.w;
 				// pIn.color.rgb = lerp(float3(0,0,0), float3(1,1,1), shade);
 
@@ -100,17 +100,22 @@ Shader "Custom/Particles Geometry" {
 				float3 tangent = float3(1.0, 0.0, 0.0) * radius;
 				float3 up = float3(0.0, 1.0, 0.0) * radius;
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(-tangent + up, 0);
+				up *= 5.;
+
+				float angle = _Time.y + noiseIQ(position) * PI2;
+				up += float3(cos(angle), 0, sin(angle)) * 0.2;
+
+				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(-tangent, 0);
 				pIn.texcoord = float2(-0.2,0.05);
 				pIn.color = _Color * 0.3;
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(-up, 0);
+				pIn.vertex = mul(UNITY_MATRIX_VP, vertex + float4(up, 0));
 				pIn.texcoord = float2(0.4,1.4);
 				pIn.color = _Color;
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(tangent + up, 0);
+				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(tangent, 0);
 				pIn.texcoord = float2(1.4,0.05);
 				pIn.color = _Color * 0.3;
 				triStream.Append(pIn);
