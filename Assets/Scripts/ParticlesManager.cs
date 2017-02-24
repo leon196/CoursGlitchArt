@@ -79,5 +79,6 @@ public class ParticlesManager : MonoBehaviour
 		particleMaterial.SetFloat("_Radius", radius);
 		particleMaterial.SetTexture("_MainTex", sprite);
 		particleMaterial.SetColor("_Color", color);
+		particleMaterial.SetVector("_Target", target.position);
 	}
 }

@@ -26,8 +26,8 @@
 			fixed4 frag (v2f_img i) : SV_Target
 			{
 				fixed4 position = tex2D(_MainTex, i.uv);
-				fixed4 original = tex2D(_SpawnTexture, i.uv);
-
+				// fixed4 original = tex2D(_SpawnTexture, i.uv);
+				float4 original = float4(0,0,0,0);
 				original.xyz += _Target;
 
 				float slow = step(_SlowRatio, rand(original.xz));
@@ -38,18 +38,18 @@
 				float nx = noiseIQ((position + original) * _NoiseScale.x + tt.x);
 				float ny = noiseIQ((position + original) * _NoiseScale.y + tt.y);
 				float nz = noiseIQ((position + original) * _NoiseScale.z + tt.z);
-				//velocity += float3(nx, ny, nz) * 2. - 1.;
+				// velocity += float3(nx, ny, nz) * 2. - 1.;
 
 				//velocity += normalize(position);
 				float3 direction = 3 * normalize(position - _Target);
 
-				velocity += cross(direction, float3(0,1,0));
+				// velocity += cross(direction, float3(0,1,0));
 
 				float ww = position.w * position.w;
 
-				velocity += direction * ww;
+				// velocity += direction * ww;
 
-				velocity.y += (1. - ww) * 0.75;
+				// velocity.y += (1. - ww) * 0.75;
 
 				position.xyz += velocity * _Speed;
 

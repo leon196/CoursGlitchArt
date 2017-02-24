@@ -1,2 +1,63 @@
-histoire de matrices
-bake 2d texture (generated 2d effect and flow map)
+
+unlit shader :
+
+transition entre deux matiere (texture & lave, effet desintegration)
+
+mesh procedural :
+
+custom line renderer
+
+particles :
+
+animations
+integration de point cloud (photoscan)
+grille de motif (fleches ou feuilles)
+pelouse, pousse dynamique (jeu de tondeuse, jeu de brossage)
+fur system
+strange attractors
+
+voxelisation :
+voxel et octree
+
+water :
+
+jolie vagues
+jolie couleurs (ecumes)
+gestion de l'alpha
+
+baking :
+
+flow map et compagnie
+
+boids :
+
+algo de base 2D
+boids 3D avec gestion de la direction
+
+Fluid :
+
+2D
+folie 3D
+
+Curve Modifier :
+
+Marching Cubes
+
+Raymarching
+and classic mesh geometry
+fractal
+
+neural network
+
+marchine learning
+algo genetic
+
+spore
+
+cubemap
+double render texture
+reflection
+
+shader escher
+
+liste de mots clefs pour trouver des histoire cools de design procedural

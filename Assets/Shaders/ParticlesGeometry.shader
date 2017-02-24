@@ -6,17 +6,18 @@ Shader "Custom/Particles Geometry" {
 		_PositionTexture ("Vertex (RGB)", 2D) = "white" {}
 		_Color ("Color", Color) = (1,1,1,1)
 		_Radius ("Radius", Float) = 0.1
+		_Target ("Target", Vector) = (1,1,1,1)
 	}
 	SubShader {
 		// Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
 		// Blend SrcAlpha OneMinusSrcAlpha
 		// ZWrite Off
 
-		Tags { "RenderType"="Opaque" }
+		// Tags { "RenderType"="Opaque" }
 
-		// Tags { "Queue"="AlphaTest" "RenderType"="Transparent" "IgnoreProjector"="True" }
-		// Blend One OneMinusSrcAlpha
-		// AlphaToMask On
+		Tags { "Queue"="AlphaTest" "RenderType"="Transparent" "IgnoreProjector"="True" }
+		Blend One OneMinusSrcAlpha
+		AlphaToMask On
 
 		Cull Off
 		LOD 100
@@ -33,6 +34,7 @@ Shader "Custom/Particles Geometry" {
 			sampler2D _PositionTexture;
 			float4 _MainTex_ST;
 			float4 _Color;
+			float3 _Target;
 			float _Radius;
 
 			struct VS_INPUT
@@ -76,10 +78,12 @@ Shader "Custom/Particles Geometry" {
 				pIn.texcoord2 = tri[0].texcoord2;
 				pIn.color = tri[0].color * _Color;
 
-				// float4 position = tex2Dlod(_PositionTexture, float4(pIn.texcoord2.xy, 0, 0));
+				float4 position = tex2Dlod(_PositionTexture, float4(pIn.texcoord2.xy, 0, 0));
 				
-				float4 position = float4(0,0,0,0);
-				position.xz = pIn.texcoord2.xy * 20.;
+				// float4 position = float4(0,0,0,0);
+				// position.xz = pIn.texcoord2.xy * 20.;
+
+				// float4 position = tri[0].vertex;
 
 				float4 vertex = mul(unity_ObjectToWorld, float4(position.xyz, tri[0].vertex.w));
 				float radius = _Radius * (rand(pIn.texcoord2.xy) * 0.9 + 0.1);
@@ -99,18 +103,22 @@ Shader "Custom/Particles Geometry" {
 
 				float3 tangent = float3(1.0, 0.0, 0.0) * radius;
 				float3 up = float3(0.0, 1.0, 0.0) * radius;
+				// float3 up = normalize(tri[0].normal);
 
-				up *= 5.;
+				// up *= noiseIQ(position);
 
-				float angle = _Time.y + noiseIQ(position) * PI2;
-				up += float3(cos(angle), 0, sin(angle)) * 0.2;
+				// float angle = _Time.y + noiseIQ(position) * PI2;
+				// up += float3(cos(angle), 0, sin(angle)) * 0.2;
+
+				// float3 direction = (vertex + up) - _Target;
+				// up += normalize(direction) * (1. - smoothstep(0., 3., length(direction)));
 
 				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(-tangent, 0);
 				pIn.texcoord = float2(-0.2,0.05);
 				pIn.color = _Color * 0.3;
 				triStream.Append(pIn);
 
-				pIn.vertex = mul(UNITY_MATRIX_VP, vertex + float4(up, 0));
+				pIn.vertex = mul(UNITY_MATRIX_VP, vertex) + float4(up, 0);
 				pIn.texcoord = float2(0.4,1.4);
 				pIn.color = _Color;
 				triStream.Append(pIn);
@@ -123,7 +131,7 @@ Shader "Custom/Particles Geometry" {
 
 			float4 frag (FS_INPUT i) : COLOR
 			{
-				return i.color;// * tex2D(_MainTex, i.texcoord);
+				return i.color * tex2D(_MainTex, i.texcoord);
 			}
 			ENDCG
 		}
